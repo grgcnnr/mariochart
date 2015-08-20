@@ -22,6 +22,6 @@
   <body>
     <div id="form"></div>
     <div id="mainRegion"> </div>
-    <script type="text/javascript" src="{{ URL::asset('js/app.js') }}"></script>
+  <script type="text/javascript" src="{{ URL::asset('js/app.js') }}"></script>.git
   </body>
 </html>
