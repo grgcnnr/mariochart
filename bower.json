@@ -1,0 +1,27 @@
+{
+  "name": "mario",
+  "version": "0.0.0",
+  "authors": [
+    "George Connor <grgcnnr@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/lib",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+    "backbone": "~1.1.2",
+    "moment": "~2.10.6",
+    "jquery": "~2.1.3",
+    "marionette": "~2.4.2",
+    "requirejs": "~2.1.20",
+    "foundation": "~5.5.2",
+    "almond": "~0.3.1"
+  }
+}
