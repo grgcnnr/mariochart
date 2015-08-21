@@ -16,3 +16,4 @@ Route::get('/', function () {
 });
 
 Route::resource('races', 'RacesController');
+Route::resource('racers', 'RacersController');

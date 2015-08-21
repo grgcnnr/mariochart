@@ -1,7 +1,9 @@
 define([
+    'jquery',
     'backbone',
     'models/race',
-], function(Backbone, RaceModel) {
+    'collections/racer'
+], function($,Backbone, RaceModel, RacerCollection) {
   var raceCollection = Backbone.Collection.extend({
     url: '/races',
     model:  RaceModel,
@@ -9,16 +11,45 @@ define([
       return race.get('date');
     },
 
+    racers: new RacerCollection(),
+
+    fetch:function(){
+      var dfd = new $.Deferred();
+      var _this = this;
+
+      Backbone.Collection.prototype.fetch.call(this).then(function(){
+        if(!_this.racers.length) {
+          _this.racers.fetch({
+            success: function(){
+              _this.addRacerData();
+              dfd.resolve();
+            }
+          });
+        }
+      });
+
+      return dfd.promise();
+    },
+
     initialize: function() {
       var globalCh = Backbone.Wreqr.radio.channel('global');
       globalCh.vent.on('race:won', this.addRace, this);
     },
 
+    addRacerData: function(){
+      var racers = this.racers.toJSON();
+      _.each(this.models, function(model){
+        var rid = model.get('racer_id');
+        model.racer = _.findWhere(racers, {id: rid});
+      }, this);
+    },
+
     // ERR IS THIS OK?
     //The collection is listening for a new race and adding a model to itself
-    addRace: function(racer) {
+    addRace: function(racerId) {
+      console.log('addrace caught', racerId);
       var _this = this;
-      var newRace = new this.model({racer: racer}, {validate: true});
+      var newRace = new this.model({racer_id: racerId}, {validate: true});
       newRace.save({},
         {success: function(model, response, options) {
           _this.add(model);

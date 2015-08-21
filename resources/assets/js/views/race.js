@@ -2,10 +2,10 @@ define([
   'underscore',
   'marionette',
   'moment',
-], function(_, Marionette, Moment) {
+  'text!tpl/race.tpl',
+], function(_, Marionette, Moment, raceTpl) {
   var RaceView = Marionette.ItemView.extend({
-    template: '#raceTpl',
-
+    template: _.template(raceTpl),
     events: {
       'click [data-action="delete"]': 'raceDeleted',
     },
@@ -27,6 +27,7 @@ define([
       var opts = {
         niceDate: niceDate,
         canDelete: canDelete,
+        racer: this.model.racer,
       };
       return _.extend(opts, this.model.toJSON(), {});
     },

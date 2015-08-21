@@ -1,27 +1,12 @@
 <!DOCTYPE html>
 <html>
-  <link rel="stylesheet" href="/css/style.css">
-  <script id="raceSubmitTpl" type="text/tpl">
-    <label for="">Who won</label>
-    <select class="" name="">
-    <% _.each(items, function(item){ %>
-      <option> <%= item.name %> </option>
-    <% }); %>
-
-    </select>
-    <button type="submit">Save</button>
-  </script>
-  <script id="raceTpl" type="text/tpl">
-    <p>
-      <%- racer %> - <small><%- niceDate %></small>
-      <% if(canDelete){ %>
-        <button data-action='delete'>X</button>
-      <% } %>
-    </p>
-  </script>
+  <link rel="stylesheet" href="/css/app.css">
   <body>
-    <div id="form"></div>
-    <div id="mainRegion"> </div>
-  <script type="text/javascript" src="{{ URL::asset('js/app.js') }}"></script>.git
+    <div id="form" class="row"></div>
+    <div id="mainRegion" class="row"> </div>
+    <!-- for dev -->
+    <script type="text/javascript" src="{{ URL::asset('js/app.js') }}"></script>
+
+    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js" data-main="{{ URL::asset('js/loader.js') }}"></script> -->
   </body>
 </html>

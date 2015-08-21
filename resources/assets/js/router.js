@@ -7,8 +7,8 @@ define([
     'views/raceSubmit',
     'views/races',
     'views/import',
-], function(Backbone, Marionette, regionManager, RacerCollection, RaceCollection, RaceSubmitView, RacesView, ImportView) {
-
+    'layouts/results',
+], function(Backbone, Marionette, regionManager, RacerCollection, RaceCollection, RaceSubmitView, RacesView, ImportView, ResultsLayout) {
   var router = Backbone.Router.extend({
     routes: {
       '': 'index',
@@ -16,14 +16,30 @@ define([
     },
 
     index: function() {
-      console.log('index route');
-      var racerCollection = new RacerCollection([{name: 'Noel'},{name: 'Andy'},{name: 'George'}]);
-      var raceSubmitView = new RaceSubmitView({collection: racerCollection});
-      var raceCollection = new RaceCollection();
-      raceCollection.fetch();
-      var racesView = new RacesView({collection: raceCollection});
-      regionManager.get('addRegion').show(raceSubmitView);
-      regionManager.get('mainRegion').show(racesView);
+
+
+      var resultsLayout = new ResultsLayout(),
+        racerCollection = new RacerCollection(),
+        racerCollectionFetched = racerCollection.fetch(),
+        raceCollection,
+        raceCollectionFetched;
+
+      $.when(racerCollectionFetched.then(function(){
+        raceCollection = new RaceCollection(),
+        raceCollectionFetched = raceCollection.fetch();
+
+        // when set up races view
+        $.when(raceCollectionFetched).then(function(){
+          var raceSubmitView = new RaceSubmitView({collection: racerCollection});
+          var racesView = new RacesView({collection: raceCollection});
+
+          regionManager.get('addRegion').show(raceSubmitView);
+          regionManager.get('mainRegion').show(resultsLayout);
+          resultsLayout.showChildView('history', racesView);
+          // resultsLayout.showChildView('chart', new WinsChartView({collection: raceCollection}));
+        });
+
+      }));
     },
 
     import: function() {

@@ -3,3 +3,4 @@
 /resources/lib
 Homestead.yaml
 .env
+resources/assets/lib/

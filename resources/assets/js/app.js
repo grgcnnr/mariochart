@@ -6,11 +6,6 @@ define([
 
   var App = new Backbone.Marionette.Application();
 
-  // App.addRegions({
-  //   addRegion: '#form',
-  //   mainRegion: '#mainRegion',
-  // });
-
   App.on('start', function() {
     new Router();
     Backbone.history.start();

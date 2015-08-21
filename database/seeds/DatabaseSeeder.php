@@ -17,12 +17,14 @@ class DatabaseSeeder extends Seeder
         Model::unguard();
 
         // $this->call(UserTableSeeder::class);
+        DB::table('racers')->truncate();
         DB::table('racers')->insert([
           ['name' => 'George', 'color' => '#88C425'],
           ['name' => 'Noel', 'color' => '#FF370F'],
           ['name' => 'Andy', 'color' => '#2FB8AC']
         ]);
 
+        DB::table('races')->truncate();
         DB::table('races')->insert([
           ['racer_id' => '1', 'won_date' => 1438741739282],
           ['racer_id' => '2', 'won_date' => 1438741739282],

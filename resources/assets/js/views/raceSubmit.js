@@ -1,19 +1,20 @@
 define([
+  'underscore',
   'marionette',
   'app',
-], function(Marionette, App) {
+  'text!tpl/raceSubmit.tpl',
+], function(_,Marionette, App, raceSubmitTpl) {
   // The form that handles adding new races to the racesCollection
   var raceSubmitView = Marionette.ItemView.extend({
-    template: '#raceSubmitTpl',
-
+    template: _.template(raceSubmitTpl),
     events: {
       'click button': 'winnerAdded',
     },
 
     winnerAdded: function() {
-      var winner = (this.$('select').val());
+      var racerId = (this.$('select option:selected').attr('value'));
       var globalCh = Backbone.Wreqr.radio.channel('global');
-      globalCh.vent.trigger('race:won', winner);
+      globalCh.vent.trigger('race:won', racerId);
     },
   });
 

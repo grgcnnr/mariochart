@@ -25,7 +25,7 @@ elixir.extend('rjs', function() {
         }
       ).pipe(gulp.dest('./public/js')); // pipe it to the output DIR
   });
-  this.registerWatcher('rjs', 'resources/assets/js/**/*.js');
+  this.registerWatcher('rjs', ['resources/assets/js/**/*.js','resources/assets/js/**/*.tpl'] );
 
   return this.queueTask('rjs');
 });
@@ -33,4 +33,6 @@ elixir.extend('rjs', function() {
 elixir(function(mix) {
     mix.sass('app.scss');
     mix.rjs();
+    // mix.copy('resources/assets/js', 'public/js');
+    // mix.copy('resources/assets/lib', 'public/lib');
 });

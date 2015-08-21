@@ -3,14 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-use App\Race;
-
-class RacesController extends Controller
+use App\Racer;
+class RacersController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -19,8 +17,19 @@ class RacesController extends Controller
      */
     public function index()
     {
-        $races =  Race::all();
-        return Response()->json($races->toArray());
+      $racers =  Racer::all();
+      return Response()->json($racers->toArray());
+
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return Response
+     */
+    public function create()
+    {
+        //
     }
 
     /**
@@ -31,11 +40,7 @@ class RacesController extends Controller
      */
     public function store(Request $request)
     {
-        $race = new Race;
-        $race->racer_id = $request->racer_id;
-        $race->won_date = time();
-        $race->save();
-        return Response()->json($race->toArray());
+        //
     }
 
     /**
@@ -46,10 +51,20 @@ class RacesController extends Controller
      */
     public function show($id)
     {
-      $races =  Race::where('id', $id)->get();
-      return Response()->json($races->toArray());
+      $racer =  Racer::where('id', $id)->get();
+      return Response()->json($racer->toArray());
     }
 
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return Response
+     */
+    public function edit($id)
+    {
+        //
+    }
 
     /**
      * Update the specified resource in storage.

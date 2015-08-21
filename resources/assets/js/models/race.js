@@ -1,11 +1,13 @@
 define([
   'backbone',
-], function(Backbone) {
+  'models/racer',
+], function(Backbone, RacerModel) {
   RaceModel = Backbone.Model.extend({
     urlRoot: '/races',
+
     validate: function(attr) {
-      if (!attr.racer) {
-        return 'A racer name needs to be set';
+      if (!attr.racer_id) {
+        return 'A racer id needs to be set';
       }
     },
 
