@@ -7,6 +7,7 @@ define([
     'collections/racer'
 ], function(_,$,Backbone, cacheman, RaceModel, RacerCollection) {
   var raceCollection = Backbone.Collection.extend({
+    cachemanId: 'racecollection',
     url: '/races',
     model:  RaceModel,
     comparator: function(race) {
@@ -15,15 +16,13 @@ define([
 
     add: function(race){
       var _this = this;
-      cacheman.get('racerCollection').done(function(racerCollection){
+      cacheman.get( new racerCollection()).done(function(racerCollection){
         var racers = racerCollection.toJSON();
         race.racer = _.findWhere(racers, {id: race.get('racer_id')});
-
         Backbone.Collection.prototype.add.call(_this, race);
       });
     },
-    // maYBE WE SHOULD OVERRIDE THE FETCH MOETHOF ON THE RACE model
-    // dO IT IN THERE INSTEAD?
+
     fetch:function(){
       var dfd = new $.Deferred();
       var _this = this;

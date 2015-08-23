@@ -5943,46 +5943,26 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
   return Marionette;
 }));
 
-define('models/racer',[
-  'backbone',
-], function(Backbone) {
-  var RacerModel = Backbone.Model.extend({
-    urlRoot: '/racers',
-  });
-  return RacerModel;
-});
-
-define('collections/racer',[
-    'backbone',
-    'models/racer',
-], function(Backbone, RacerModel) {
-  var RacerCollection = Backbone.Collection.extend({
-    url: '/racers',
-    model:  RacerModel,
-  });
-  return RacerCollection;
-});
-
 
 define('cacheman',[
     'jquery',
     'backbone',
     'marionette',
-    'collections/racer',
-], function($,Backbone, Marionette, RacerCollectoion) {
+], function($,Backbone, Marionette, RacerCollection, RaceCollection) {
 
   var chacheman = Marionette.Object.extend({
     cache: {},
-    constructors: {
-      racerCollection: RacerCollectoion
-    },
-    get: function(name){
-      var _this = this;
-      var dfd = new $.Deferred();
+
+
+    get: function(obj){
+      var _this = this,
+        name = obj.cachemanId,
+        dfd = new $.Deferred();
 
       if (!this.cache[name]) {
-        this.cache[name] = new this.constructors[name]();
+        this.cache[name] = obj;
         this.cache[name].fetch().done(function(){
+          console.log(_this.cache[name]);
           dfd.resolve(_this.cache[name]);
         });
       } else {
@@ -6423,15 +6403,25 @@ define('layouts/results',[
   return ResultsLayout;
 });
 
+define('models/racer',[
+  'backbone',
+], function(Backbone) {
+  var RacerModel = Backbone.Model.extend({
+    urlRoot: '/racers',
+  });
+  return RacerModel;
+});
+
 define('models/race',[
   'backbone',
   'models/racer',
 ], function(Backbone, App, RacerModel) {
   RaceModel = Backbone.Model.extend({
+
     urlRoot: '/races',
 
     addRacerData: function(){
-      
+
     },
 
     validate: function(attr) {
@@ -6450,6 +6440,18 @@ define('models/race',[
   return RaceModel;
 });
 
+define('collections/racer',[
+    'backbone',
+    'models/racer',
+], function(Backbone, RacerModel) {
+  var RacerCollection = Backbone.Collection.extend({
+    cachemanId: 'racercollection',
+    url: '/racers',
+    model:  RacerModel,
+  });
+  return RacerCollection;
+});
+
 define('collections/race',[
     'underscore',
     'jquery',
@@ -6459,6 +6461,7 @@ define('collections/race',[
     'collections/racer'
 ], function(_,$,Backbone, cacheman, RaceModel, RacerCollection) {
   var raceCollection = Backbone.Collection.extend({
+    cachemanId: 'racecollection',
     url: '/races',
     model:  RaceModel,
     comparator: function(race) {
@@ -6467,15 +6470,13 @@ define('collections/race',[
 
     add: function(race){
       var _this = this;
-      cacheman.get('racerCollection').done(function(racerCollection){
+      cacheman.get( new racerCollection()).done(function(racerCollection){
         var racers = racerCollection.toJSON();
         race.racer = _.findWhere(racers, {id: race.get('racer_id')});
-
         Backbone.Collection.prototype.add.call(_this, race);
       });
     },
-    // maYBE WE SHOULD OVERRIDE THE FETCH MOETHOF ON THE RACE model
-    // dO IT IN THERE INSTEAD?
+
     fetch:function(){
       var dfd = new $.Deferred();
       var _this = this;
@@ -9831,36 +9832,28 @@ define('controllers/baseController',[
     },
 
     index: function() {
-      var _this = this;
-      this.globalCh.vent.on('race:won', function(racerId){
-        var newRace = new RaceModel({racer_id: racerId}, {validate: true});
-        newRace.save(); // we dont actually care if the sync has finished
-        raceCollection.add(newRace);
-      });
 
-      var resultsLayout = new ResultsLayout(),
-        racerCollection = new RacerCollection(),
-        racerCollectionFetched = racerCollection.fetch(),
-        raceCollection,
-        raceCollectionFetched;
 
-      $.when(racerCollectionFetched.then(function(){
+
+      cacheman.get( new RacerCollection() ).done(function(racerCollection){
         var raceSubmitView = new RaceSubmitView({collection: racerCollection});
         regionManager.get('addRegion').show(raceSubmitView);
+      });
 
-        raceCollection = new RaceCollection(),
-        raceCollectionFetched = raceCollection.fetch();
+      cacheman.get( new RaceCollection()).done(function(raceCollection){
+          var resultsLayout = new ResultsLayout(),
+            racesView = new RacesView({collection: raceCollection});
 
-        // when set up races view
-        $.when(raceCollectionFetched).then(function(){
-          var racesView = new RacesView({collection: raceCollection});
+          this.globalCh.vent.on('race:won', function(racerId){
+            var newRace = new RaceModel({racer_id: racerId}, {validate: true});
+            newRace.save(); // we dont actually care if the sync has finished
+            raceCollection.add(newRace);
+          });
 
           regionManager.get('mainRegion').show(resultsLayout);
           resultsLayout.showChildView('history', racesView);
-          // resultsLayout.showChildView('chart', new WinsChartView({collection: raceCollection}));
-        });
 
-      }));
+      });
     },
 
 

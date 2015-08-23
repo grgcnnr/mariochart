@@ -19,36 +19,28 @@ define([
     },
 
     index: function() {
-      var _this = this;
-      this.globalCh.vent.on('race:won', function(racerId){
-        var newRace = new RaceModel({racer_id: racerId}, {validate: true});
-        newRace.save(); // we dont actually care if the sync has finished
-        raceCollection.add(newRace);
-      });
 
-      var resultsLayout = new ResultsLayout(),
-        racerCollection = new RacerCollection(),
-        racerCollectionFetched = racerCollection.fetch(),
-        raceCollection,
-        raceCollectionFetched;
 
-      $.when(racerCollectionFetched.then(function(){
+
+      cacheman.get( new RacerCollection() ).done(function(racerCollection){
         var raceSubmitView = new RaceSubmitView({collection: racerCollection});
         regionManager.get('addRegion').show(raceSubmitView);
+      });
 
-        raceCollection = new RaceCollection(),
-        raceCollectionFetched = raceCollection.fetch();
+      cacheman.get( new RaceCollection()).done(function(raceCollection){
+          var resultsLayout = new ResultsLayout(),
+            racesView = new RacesView({collection: raceCollection});
 
-        // when set up races view
-        $.when(raceCollectionFetched).then(function(){
-          var racesView = new RacesView({collection: raceCollection});
+          this.globalCh.vent.on('race:won', function(racerId){
+            var newRace = new RaceModel({racer_id: racerId}, {validate: true});
+            newRace.save(); // we dont actually care if the sync has finished
+            raceCollection.add(newRace);
+          });
 
           regionManager.get('mainRegion').show(resultsLayout);
           resultsLayout.showChildView('history', racesView);
-          // resultsLayout.showChildView('chart', new WinsChartView({collection: raceCollection}));
-        });
 
-      }));
+      });
     },
 
 

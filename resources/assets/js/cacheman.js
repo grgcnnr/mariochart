@@ -3,21 +3,21 @@ define([
     'jquery',
     'backbone',
     'marionette',
-    'collections/racer',
-], function($,Backbone, Marionette, RacerCollectoion) {
+], function($,Backbone, Marionette, RacerCollection, RaceCollection) {
 
   var chacheman = Marionette.Object.extend({
     cache: {},
-    constructors: {
-      racerCollection: RacerCollectoion
-    },
-    get: function(name){
-      var _this = this;
-      var dfd = new $.Deferred();
+
+
+    get: function(obj){
+      var _this = this,
+        name = obj.cachemanId,
+        dfd = new $.Deferred();
 
       if (!this.cache[name]) {
-        this.cache[name] = new this.constructors[name]();
+        this.cache[name] = obj;
         this.cache[name].fetch().done(function(){
+          console.log(_this.cache[name]);
           dfd.resolve(_this.cache[name]);
         });
       } else {
