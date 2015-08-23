@@ -1,9 +1,11 @@
 define([
+    'underscore',
     'jquery',
     'backbone',
+    'cacheman',
     'models/race',
     'collections/racer'
-], function($,Backbone, RaceModel, RacerCollection) {
+], function(_,$,Backbone, cacheman, RaceModel, RacerCollection) {
   var raceCollection = Backbone.Collection.extend({
     url: '/races',
     model:  RaceModel,
@@ -11,50 +13,32 @@ define([
       return race.get('date');
     },
 
-    racers: new RacerCollection(),
+    add: function(race){
+      var _this = this;
+      cacheman.get('racerCollection').done(function(racerCollection){
+        var racers = racerCollection.toJSON();
+        race.racer = _.findWhere(racers, {id: race.get('racer_id')});
 
+        Backbone.Collection.prototype.add.call(_this, race);
+      });
+    },
+    // maYBE WE SHOULD OVERRIDE THE FETCH MOETHOF ON THE RACE model
+    // dO IT IN THERE INSTEAD?
     fetch:function(){
       var dfd = new $.Deferred();
       var _this = this;
 
       Backbone.Collection.prototype.fetch.call(this).then(function(){
-        if(!_this.racers.length) {
-          _this.racers.fetch({
-            success: function(){
-              _this.addRacerData();
-              dfd.resolve();
-            }
+        cacheman.get('racerCollection').then(function(racerCollection){
+          var racers = racerCollection.toJSON();
+          _.each(_this.models, function(race){
+            race.racer = _.findWhere(racers, {id: race.get('racer_id')});
           });
-        }
+          dfd.resolve();
+        });
       });
 
       return dfd.promise();
-    },
-
-    initialize: function() {
-      var globalCh = Backbone.Wreqr.radio.channel('global');
-      globalCh.vent.on('race:won', this.addRace, this);
-    },
-
-    addRacerData: function(){
-      var racers = this.racers.toJSON();
-      _.each(this.models, function(model){
-        var rid = model.get('racer_id');
-        model.racer = _.findWhere(racers, {id: rid});
-      }, this);
-    },
-
-    // ERR IS THIS OK?
-    //The collection is listening for a new race and adding a model to itself
-    addRace: function(racerId) {
-      console.log('addrace caught', racerId);
-      var _this = this;
-      var newRace = new this.model({racer_id: racerId}, {validate: true});
-      newRace.save({},
-        {success: function(model, response, options) {
-          _this.add(model);
-        },
-      });
     },
   });
 

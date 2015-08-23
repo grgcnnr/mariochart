@@ -5943,22 +5943,6 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
   return Marionette;
 }));
 
-define('regionManager',[
-    'backbone',
-    'marionette',
-], function(Backbone, Marionette) {
-
-  var regionManager = new Marionette.RegionManager({
-    regions: {
-      addRegion: '#form',
-      mainRegion: '#mainRegion',
-    },
-  });
-
-  return regionManager;
-
-});
-
 define('models/racer',[
   'backbone',
 ], function(Backbone) {
@@ -5979,90 +5963,54 @@ define('collections/racer',[
   return RacerCollection;
 });
 
-define('models/race',[
-  'backbone',
-  'models/racer',
-], function(Backbone, RacerModel) {
-  RaceModel = Backbone.Model.extend({
-    urlRoot: '/races',
 
-    validate: function(attr) {
-      if (!attr.racer_id) {
-        return 'A racer id needs to be set';
-      }
-    },
-
-    timeLeftToDel: function() {
-      var date = new Date(this.get('date'));
-      var age =  new Date() - date; // time in MS between current time and created time
-      return (1000 * 60 * 3) - age;
-    },
-  });
-
-  return RaceModel;
-});
-
-define('collections/race',[
+define('cacheman',[
     'jquery',
     'backbone',
-    'models/race',
-    'collections/racer'
-], function($,Backbone, RaceModel, RacerCollection) {
-  var raceCollection = Backbone.Collection.extend({
-    url: '/races',
-    model:  RaceModel,
-    comparator: function(race) {
-      return race.get('date');
+    'marionette',
+    'collections/racer',
+], function($,Backbone, Marionette, RacerCollectoion) {
+
+  var chacheman = Marionette.Object.extend({
+    cache: {},
+    constructors: {
+      racerCollection: RacerCollectoion
     },
-
-    racers: new RacerCollection(),
-
-    fetch:function(){
-      var dfd = new $.Deferred();
+    get: function(name){
       var _this = this;
+      var dfd = new $.Deferred();
 
-      Backbone.Collection.prototype.fetch.call(this).then(function(){
-        if(!_this.racers.length) {
-          _this.racers.fetch({
-            success: function(){
-              _this.addRacerData();
-              dfd.resolve();
-            }
-          });
-        }
-      });
+      if (!this.cache[name]) {
+        this.cache[name] = new this.constructors[name]();
+        this.cache[name].fetch().done(function(){
+          dfd.resolve(_this.cache[name]);
+        });
+      } else {
+        dfd.resolve(this.cache[name]);
+      };
 
       return dfd.promise();
-    },
+    }
 
-    initialize: function() {
-      var globalCh = Backbone.Wreqr.radio.channel('global');
-      globalCh.vent.on('race:won', this.addRace, this);
-    },
+  });
 
-    addRacerData: function(){
-      var racers = this.racers.toJSON();
-      _.each(this.models, function(model){
-        var rid = model.get('racer_id');
-        model.racer = _.findWhere(racers, {id: rid});
-      }, this);
-    },
+  return new chacheman();
+});
 
-    // ERR IS THIS OK?
-    //The collection is listening for a new race and adding a model to itself
-    addRace: function(racerId) {
-      console.log('addrace caught', racerId);
-      var _this = this;
-      var newRace = new this.model({racer_id: racerId}, {validate: true});
-      newRace.save({},
-        {success: function(model, response, options) {
-          _this.add(model);
-        },
-      });
+define('regionManager',[
+    'backbone',
+    'marionette',
+], function(Backbone, Marionette) {
+
+  var regionManager = new Marionette.RegionManager({
+    regions: {
+      addRegion: '#form',
+      mainRegion: '#mainRegion',
     },
   });
 
-  return raceCollection;
+  return regionManager;
+
 });
 
 /**
@@ -6455,6 +6403,134 @@ define('text',['module'], function (module) {
         };
     }
     return text;
+});
+
+define('text!tpl/resultsLayout.tpl',[],function () { return '<div class="row">\r\n  <div id="history" class="small-6 columns"></div>\r\n  <div id="chart" class="small-6 columns"></div>\r\n</div>\r\n';});
+
+define('layouts/results',[
+  'underscore',
+  'marionette',
+  'text!tpl/resultsLayout.tpl',
+], function(_, Marionette, resultsLayoutTpl) {
+  var ResultsLayout = Marionette.LayoutView.extend({
+    template: _.template(resultsLayoutTpl),
+    regions: {
+      history: '#history',
+      chart: '#chart',
+    },
+  });
+
+  return ResultsLayout;
+});
+
+define('models/race',[
+  'backbone',
+  'models/racer',
+], function(Backbone, App, RacerModel) {
+  RaceModel = Backbone.Model.extend({
+    urlRoot: '/races',
+
+    addRacerData: function(){
+      
+    },
+
+    validate: function(attr) {
+      if (!attr.racer_id) {
+        return 'A racer id needs to be set';
+      }
+    },
+
+    timeLeftToDel: function() {
+      var date = new Date(this.get('date'));
+      var age =  new Date() - date; // time in MS between current time and created time
+      return (1000 * 60 * 3) - age;
+    },
+  });
+
+  return RaceModel;
+});
+
+define('collections/race',[
+    'underscore',
+    'jquery',
+    'backbone',
+    'cacheman',
+    'models/race',
+    'collections/racer'
+], function(_,$,Backbone, cacheman, RaceModel, RacerCollection) {
+  var raceCollection = Backbone.Collection.extend({
+    url: '/races',
+    model:  RaceModel,
+    comparator: function(race) {
+      return race.get('date');
+    },
+
+    add: function(race){
+      var _this = this;
+      cacheman.get('racerCollection').done(function(racerCollection){
+        var racers = racerCollection.toJSON();
+        race.racer = _.findWhere(racers, {id: race.get('racer_id')});
+
+        Backbone.Collection.prototype.add.call(_this, race);
+      });
+    },
+    // maYBE WE SHOULD OVERRIDE THE FETCH MOETHOF ON THE RACE model
+    // dO IT IN THERE INSTEAD?
+    fetch:function(){
+      var dfd = new $.Deferred();
+      var _this = this;
+
+      Backbone.Collection.prototype.fetch.call(this).then(function(){
+        cacheman.get('racerCollection').then(function(racerCollection){
+          var racers = racerCollection.toJSON();
+          _.each(_this.models, function(race){
+            race.racer = _.findWhere(racers, {id: race.get('racer_id')});
+          });
+          dfd.resolve();
+        });
+      });
+
+      return dfd.promise();
+    },
+  });
+
+  return raceCollection;
+});
+
+define('views/import',[
+  'underscore',
+  'marionette',
+  'models/race',
+], function(_, Marionette, RaceModel) {
+
+  var ImportView = Marionette.ItemView.extend({
+    template: function() {
+      return _.template('<textarea id="importtext"></textarea><button>import</button>')();
+    },
+
+    events: {
+      'click button': 'doImport',
+    },
+
+    doImport: function() {
+      var raw = this.$('#importtext').val();
+      var races;
+      try {
+        races = JSON.parse(raw);
+      } catch (e) {
+        alert(e);
+      }
+
+      if (races) {
+        _.each(races, function(race) {
+          var raceModel = new RaceModel(race);
+          raceModel.save();
+        });
+      }
+    },
+  });
+
+  return ImportView;
 });
 
 define('text!tpl/raceSubmit.tpl',[],function () { return '<div class="row collapse">\r\n  <label>Who won</label>\r\n  <div class="small-10 columns">\r\n    <select class="" name="">\r\n    <% _.each(items, function(item){ %>\r\n      <option value="<%= item.id %>"> <%= item.name %> </option>\r\n    <% }); %>\r\n    </select>\r\n  </div>\r\n  <div class="small-2 columns">\r\n  <button class="button postfix" type="submit">Save</button>\r\n  </div>\r\n</div>\r\n';});
@@ -9734,79 +9810,33 @@ define('views/races',[
   return RacesView;
 });
 
-define('views/import',[
-  'underscore',
-  'marionette',
-  'models/race',
-], function(_, Marionette, RaceModel) {
-
-  var ImportView = Marionette.ItemView.extend({
-    template: function() {
-      return _.template('<textarea id="importtext"></textarea><button>import</button>')();
-    },
-
-    events: {
-      'click button': 'doImport',
-    },
-
-    doImport: function() {
-      var raw = this.$('#importtext').val();
-      var races;
-      try {
-        races = JSON.parse(raw);
-      } catch (e) {
-        alert(e);
-      }
-
-      if (races) {
-        _.each(races, function(race) {
-          var raceModel = new RaceModel(race);
-          raceModel.save();
-        });
-      }
-    },
-  });
-
-  return ImportView;
-});
-
-define('text!tpl/resultsLayout.tpl',[],function () { return '<div class="row">\r\n  <div id="history" class="small-6 columns"></div>\r\n  <div id="chart" class="small-6 columns"></div>\r\n</div>\r\n';});
-
-define('layouts/results',[
-  'underscore',
-  'marionette',
-  'text!tpl/resultsLayout.tpl',
-], function(_, Marionette, resultsLayoutTpl) {
-  var ResultsLayout = Marionette.LayoutView.extend({
-    template: _.template(resultsLayoutTpl),
-    regions: {
-      history: '#history',
-      chart: '#chart',
-    },
-  });
-
-  return ResultsLayout;
-});
-
-define('router',[
-    'backbone',
+define('controllers/baseController',[
+    'jquery',
     'marionette',
+    'cacheman',
     'regionManager',
+    'layouts/results',
+    'models/race',
     'collections/racer',
     'collections/race',
+    'views/import',
     'views/raceSubmit',
     'views/races',
-    'views/import',
-    'layouts/results',
-], function(Backbone, Marionette, regionManager, RacerCollection, RaceCollection, RaceSubmitView, RacesView, ImportView, ResultsLayout) {
-  var router = Backbone.Router.extend({
-    routes: {
-      '': 'index',
-      import: 'import',
+
+], function($, Marionette, cacheman, regionManager, ResultsLayout, RaceModel, RacerCollection, RaceCollection, ImportView, RaceSubmitView, RacesView) {
+
+  var BaseController = Marionette.Object.extend({
+    initialize: function(){
+      this.globalCh = Backbone.Wreqr.radio.channel('global');
     },
 
     index: function() {
-
+      var _this = this;
+      this.globalCh.vent.on('race:won', function(racerId){
+        var newRace = new RaceModel({racer_id: racerId}, {validate: true});
+        newRace.save(); // we dont actually care if the sync has finished
+        raceCollection.add(newRace);
+      });
 
       var resultsLayout = new ResultsLayout(),
         racerCollection = new RacerCollection(),
@@ -9815,15 +9845,16 @@ define('router',[
         raceCollectionFetched;
 
       $.when(racerCollectionFetched.then(function(){
+        var raceSubmitView = new RaceSubmitView({collection: racerCollection});
+        regionManager.get('addRegion').show(raceSubmitView);
+
         raceCollection = new RaceCollection(),
         raceCollectionFetched = raceCollection.fetch();
 
         // when set up races view
         $.when(raceCollectionFetched).then(function(){
-          var raceSubmitView = new RaceSubmitView({collection: racerCollection});
           var racesView = new RacesView({collection: raceCollection});
 
-          regionManager.get('addRegion').show(raceSubmitView);
           regionManager.get('mainRegion').show(resultsLayout);
           resultsLayout.showChildView('history', racesView);
           // resultsLayout.showChildView('chart', new WinsChartView({collection: raceCollection}));
@@ -9832,31 +9863,51 @@ define('router',[
       }));
     },
 
+
+
     import: function() {
       regionManager.get('addRegion').reset();
       regionManager.get('mainRegion').show(new ImportView());
     },
 
+
+
   });
 
-  return router;
+  return BaseController;
+});
 
+define('approuter',[
+    'marionette',
+    'controllers/baseController'
+], function(Marionette, BaseController) {
+
+  var AppRouter = Marionette.AppRouter.extend({
+    controller: new BaseController(),
+    appRoutes: {
+      'import': 'import',
+      '': 'index',
+    },
+  });
+
+  return AppRouter;
 });
 
 define('app',[
     'backbone',
     'marionette',
-    'router',
-], function(Backbone, Marionette, Router) {
+    'approuter',
+    'collections/racer'
+], function(Backbone, Marionette, AppRouter, RacerCollection) {
 
-  var App = new Backbone.Marionette.Application();
-
-  App.on('start', function() {
-    new Router();
-    Backbone.history.start();
+  var App = Marionette.Application.extend({
+    onStart: function(){
+      new AppRouter();
+      Backbone.history.start();
+    },
   });
 
-  return App;
+  return new App();
 });
 
 requirejs.config({

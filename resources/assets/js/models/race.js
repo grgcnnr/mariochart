@@ -1,9 +1,13 @@
 define([
   'backbone',
   'models/racer',
-], function(Backbone, RacerModel) {
+], function(Backbone, App, RacerModel) {
   RaceModel = Backbone.Model.extend({
     urlRoot: '/races',
+
+    addRacerData: function(){
+      
+    },
 
     validate: function(attr) {
       if (!attr.racer_id) {

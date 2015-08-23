@@ -1,22 +1,30 @@
 define([
-    'backbone',
+    'jquery',
     'marionette',
+    'cacheman',
     'regionManager',
+    'layouts/results',
+    'models/race',
     'collections/racer',
     'collections/race',
+    'views/import',
     'views/raceSubmit',
     'views/races',
-    'views/import',
-    'layouts/results',
-], function(Backbone, Marionette, regionManager, RacerCollection, RaceCollection, RaceSubmitView, RacesView, ImportView, ResultsLayout) {
-  var router = Backbone.Router.extend({
-    routes: {
-      '': 'index',
-      import: 'import',
+
+], function($, Marionette, cacheman, regionManager, ResultsLayout, RaceModel, RacerCollection, RaceCollection, ImportView, RaceSubmitView, RacesView) {
+
+  var BaseController = Marionette.Object.extend({
+    initialize: function(){
+      this.globalCh = Backbone.Wreqr.radio.channel('global');
     },
 
     index: function() {
-
+      var _this = this;
+      this.globalCh.vent.on('race:won', function(racerId){
+        var newRace = new RaceModel({racer_id: racerId}, {validate: true});
+        newRace.save(); // we dont actually care if the sync has finished
+        raceCollection.add(newRace);
+      });
 
       var resultsLayout = new ResultsLayout(),
         racerCollection = new RacerCollection(),
@@ -25,15 +33,16 @@ define([
         raceCollectionFetched;
 
       $.when(racerCollectionFetched.then(function(){
+        var raceSubmitView = new RaceSubmitView({collection: racerCollection});
+        regionManager.get('addRegion').show(raceSubmitView);
+
         raceCollection = new RaceCollection(),
         raceCollectionFetched = raceCollection.fetch();
 
         // when set up races view
         $.when(raceCollectionFetched).then(function(){
-          var raceSubmitView = new RaceSubmitView({collection: racerCollection});
           var racesView = new RacesView({collection: raceCollection});
 
-          regionManager.get('addRegion').show(raceSubmitView);
           regionManager.get('mainRegion').show(resultsLayout);
           resultsLayout.showChildView('history', racesView);
           // resultsLayout.showChildView('chart', new WinsChartView({collection: raceCollection}));
@@ -42,13 +51,16 @@ define([
       }));
     },
 
+
+
     import: function() {
       regionManager.get('addRegion').reset();
       regionManager.get('mainRegion').show(new ImportView());
     },
 
+
+
   });
 
-  return router;
-
+  return BaseController;
 });

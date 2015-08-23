@@ -1,15 +1,16 @@
 define([
     'backbone',
     'marionette',
-    'router',
-], function(Backbone, Marionette, Router) {
+    'approuter',
+    'collections/racer'
+], function(Backbone, Marionette, AppRouter, RacerCollection) {
 
-  var App = new Backbone.Marionette.Application();
-
-  App.on('start', function() {
-    new Router();
-    Backbone.history.start();
+  var App = Marionette.Application.extend({
+    onStart: function(){
+      new AppRouter();
+      Backbone.history.start();
+    },
   });
 
-  return App;
+  return new App();
 });
