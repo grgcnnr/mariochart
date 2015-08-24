@@ -15,9 +15,8 @@ define([
         dfd = new $.Deferred();
 
       if (!this.cache[name]) {
-        this.cache[name] = obj;
-        this.cache[name].fetch().done(function(){
-          console.log(_this.cache[name]);
+        obj.fetch().done(function(){
+          _this.cache[name] = obj;
           dfd.resolve(_this.cache[name]);
         });
       } else {

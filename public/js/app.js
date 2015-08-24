@@ -5960,9 +5960,8 @@ define('cacheman',[
         dfd = new $.Deferred();
 
       if (!this.cache[name]) {
-        this.cache[name] = obj;
-        this.cache[name].fetch().done(function(){
-          console.log(_this.cache[name]);
+        obj.fetch().done(function(){
+          _this.cache[name] = obj;
           dfd.resolve(_this.cache[name]);
         });
       } else {
@@ -6470,7 +6469,7 @@ define('collections/race',[
 
     add: function(race){
       var _this = this;
-      cacheman.get( new racerCollection()).done(function(racerCollection){
+      cacheman.get( new RacerCollection() ).done(function(racerCollection){
         var racers = racerCollection.toJSON();
         race.racer = _.findWhere(racers, {id: race.get('racer_id')});
         Backbone.Collection.prototype.add.call(_this, race);
@@ -6482,7 +6481,7 @@ define('collections/race',[
       var _this = this;
 
       Backbone.Collection.prototype.fetch.call(this).then(function(){
-        cacheman.get('racerCollection').then(function(racerCollection){
+        cacheman.get( new RacerCollection() ).done(function(racerCollection){
           var racers = racerCollection.toJSON();
           _.each(_this.models, function(race){
             race.racer = _.findWhere(racers, {id: race.get('racer_id')});
@@ -9832,19 +9831,18 @@ define('controllers/baseController',[
     },
 
     index: function() {
-
-
-
+      var _this =  this;
       cacheman.get( new RacerCollection() ).done(function(racerCollection){
         var raceSubmitView = new RaceSubmitView({collection: racerCollection});
         regionManager.get('addRegion').show(raceSubmitView);
       });
-
+      
       cacheman.get( new RaceCollection()).done(function(raceCollection){
+        console.log(raceCollection);
           var resultsLayout = new ResultsLayout(),
             racesView = new RacesView({collection: raceCollection});
 
-          this.globalCh.vent.on('race:won', function(racerId){
+          _this.globalCh.vent.on('race:won', function(racerId){
             var newRace = new RaceModel({racer_id: racerId}, {validate: true});
             newRace.save(); // we dont actually care if the sync has finished
             raceCollection.add(newRace);
@@ -9854,6 +9852,7 @@ define('controllers/baseController',[
           resultsLayout.showChildView('history', racesView);
 
       });
+
     },
 
 

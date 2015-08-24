@@ -16,7 +16,7 @@ define([
 
     add: function(race){
       var _this = this;
-      cacheman.get( new racerCollection()).done(function(racerCollection){
+      cacheman.get( new RacerCollection() ).done(function(racerCollection){
         var racers = racerCollection.toJSON();
         race.racer = _.findWhere(racers, {id: race.get('racer_id')});
         Backbone.Collection.prototype.add.call(_this, race);
@@ -28,7 +28,7 @@ define([
       var _this = this;
 
       Backbone.Collection.prototype.fetch.call(this).then(function(){
-        cacheman.get('racerCollection').then(function(racerCollection){
+        cacheman.get( new RacerCollection() ).done(function(racerCollection){
           var racers = racerCollection.toJSON();
           _.each(_this.models, function(race){
             race.racer = _.findWhere(racers, {id: race.get('racer_id')});

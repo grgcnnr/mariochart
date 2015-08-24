@@ -19,19 +19,18 @@ define([
     },
 
     index: function() {
-
-
-
+      var _this =  this;
       cacheman.get( new RacerCollection() ).done(function(racerCollection){
         var raceSubmitView = new RaceSubmitView({collection: racerCollection});
         regionManager.get('addRegion').show(raceSubmitView);
       });
-
+      
       cacheman.get( new RaceCollection()).done(function(raceCollection){
+        console.log(raceCollection);
           var resultsLayout = new ResultsLayout(),
             racesView = new RacesView({collection: raceCollection});
 
-          this.globalCh.vent.on('race:won', function(racerId){
+          _this.globalCh.vent.on('race:won', function(racerId){
             var newRace = new RaceModel({racer_id: racerId}, {validate: true});
             newRace.save(); // we dont actually care if the sync has finished
             raceCollection.add(newRace);
@@ -41,6 +40,7 @@ define([
           resultsLayout.showChildView('history', racesView);
 
       });
+
     },
 
 
