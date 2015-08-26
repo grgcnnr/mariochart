@@ -23,7 +23,8 @@ define([
 
     serializeData: function() {
       var canDelete = this.model.timeLeftToDel() > 0; // 3 mins
-      var niceDate =  new Moment(this.model.get('date')).format('dddd, MMM D YYYY');
+      var niceDate =  new Moment(this.model.getDate()).format('dddd, MMM D YYYY');
+      console.log(niceDate);
       var opts = {
         niceDate: niceDate,
         canDelete: canDelete,

@@ -24,20 +24,20 @@ define([
         var raceSubmitView = new RaceSubmitView({collection: racerCollection});
         regionManager.get('addRegion').show(raceSubmitView);
       });
-      
-      cacheman.get( new RaceCollection()).done(function(raceCollection){
-        console.log(raceCollection);
-          var resultsLayout = new ResultsLayout(),
-            racesView = new RacesView({collection: raceCollection});
 
-          _this.globalCh.vent.on('race:won', function(racerId){
-            var newRace = new RaceModel({racer_id: racerId}, {validate: true});
-            newRace.save(); // we dont actually care if the sync has finished
+      cacheman.get( new RaceCollection()).done(function(raceCollection){
+        var resultsLayout = new ResultsLayout(),
+          racesView = new RacesView({collection: raceCollection});
+
+        _this.globalCh.vent.on('race:won', function(racerId){
+          var newRace = new RaceModel({racer_id: racerId}, {validate: true});
+          newRace.save().done(function(){
             raceCollection.add(newRace);
           });
+        });
 
-          regionManager.get('mainRegion').show(resultsLayout);
-          resultsLayout.showChildView('history', racesView);
+        regionManager.get('mainRegion').show(resultsLayout);
+        resultsLayout.showChildView('history', racesView);
 
       });
 

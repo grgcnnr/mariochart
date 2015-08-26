@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <link rel="stylesheet" href="/css/app.css">
+  <meta name='csrf-token' content="{{ csrf_token() }}">
   <body>
     <div id="form" class="row"></div>
     <div id="mainRegion" class="row"> </div>

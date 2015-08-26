@@ -71,6 +71,6 @@ class RacesController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $race =  Race::where('id', $id)->delete();
     }
 }

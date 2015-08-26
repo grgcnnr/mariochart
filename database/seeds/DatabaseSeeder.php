@@ -26,12 +26,12 @@ class DatabaseSeeder extends Seeder
 
         DB::table('races')->truncate();
         DB::table('races')->insert([
-          ['racer_id' => '1', 'won_date' => 1438741739282],
-          ['racer_id' => '2', 'won_date' => 1438741739282],
-          ['racer_id' => '2', 'won_date' => 1438741739282],
-          ['racer_id' => '1', 'won_date' => 1438828139282],
-          ['racer_id' => '3', 'won_date' => 1438828139282],
-          ['racer_id' => '3', 'won_date' => 1438837216991]
+          ['racer_id' => '1', 'won_date' => 1438741739],
+          ['racer_id' => '2', 'won_date' => 1438741739],
+          ['racer_id' => '2', 'won_date' => 1438741739],
+          ['racer_id' => '1', 'won_date' => 1438828139],
+          ['racer_id' => '3', 'won_date' => 1438828139],
+          ['racer_id' => '3', 'won_date' => 1438837216]
         ]);
         Model::reguard();
     }
