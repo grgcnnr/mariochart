@@ -8,7 +8,15 @@ define([
   var chacheman = Marionette.Object.extend({
     cache: {},
 
+    initialize: function(){
 
+      var _this = this
+      this.globalCh = Backbone.Wreqr.radio.channel('global');
+
+      this.globalCh.reqres.setHandler('cache-get', function(name) {
+        console.log('request heard');
+      });
+    },
     get: function(obj){
       var _this = this,
         name = obj.cachemanId,

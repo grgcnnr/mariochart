@@ -6228,39 +6228,6 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
   return Marionette;
 }));
 
-
-define('cacheman',[
-    'jquery',
-    'backbone',
-    'marionette',
-], function($,Backbone, Marionette, RacerCollection, RaceCollection) {
-
-  var chacheman = Marionette.Object.extend({
-    cache: {},
-
-
-    get: function(obj){
-      var _this = this,
-        name = obj.cachemanId,
-        dfd = new $.Deferred();
-
-      if (!this.cache[name]) {
-        obj.fetch().done(function(){
-          _this.cache[name] = obj;
-          dfd.resolve(_this.cache[name]);
-        });
-      } else {
-        dfd.resolve(this.cache[name]);
-      };
-
-      return dfd.promise();
-    }
-
-  });
-
-  return new chacheman();
-});
-
 define('regionManager',[
     'backbone',
     'marionette',
@@ -6735,6 +6702,47 @@ define('collections/racer',[
     model:  RacerModel,
   });
   return RacerCollection;
+});
+
+
+define('cacheman',[
+    'jquery',
+    'backbone',
+    'marionette',
+], function($,Backbone, Marionette, RacerCollection, RaceCollection) {
+
+  var chacheman = Marionette.Object.extend({
+    cache: {},
+
+    initialize: function(){
+
+      var _this = this
+      this.globalCh = Backbone.Wreqr.radio.channel('global');
+
+      this.globalCh.reqres.setHandler('cache-get', function(name) {
+        console.log('request heard');
+      });
+    },
+    get: function(obj){
+      var _this = this,
+        name = obj.cachemanId,
+        dfd = new $.Deferred();
+
+      if (!this.cache[name]) {
+        obj.fetch().done(function(){
+          _this.cache[name] = obj;
+          dfd.resolve(_this.cache[name]);
+        });
+      } else {
+        dfd.resolve(this.cache[name]);
+      };
+
+      return dfd.promise();
+    }
+
+  });
+
+  return new chacheman();
 });
 
 define('collections/race',[
@@ -10100,7 +10108,6 @@ define('views/races',[
 define('controllers/baseController',[
     'jquery',
     'marionette',
-    'cacheman',
     'regionManager',
     'layouts/results',
     'models/race',
@@ -10110,7 +10117,7 @@ define('controllers/baseController',[
     'views/raceSubmit',
     'views/races',
 
-], function($, Marionette, cacheman, regionManager, ResultsLayout, RaceModel, RacerCollection, RaceCollection, ImportView, RaceSubmitView, RacesView) {
+], function($, Marionette, regionManager, ResultsLayout, RaceModel, RacerCollection, RaceCollection, ImportView, RaceSubmitView, RacesView) {
 
   var BaseController = Marionette.Object.extend({
     initialize: function(){
@@ -10119,6 +10126,8 @@ define('controllers/baseController',[
 
     index: function() {
       var _this =  this;
+      // var racerCollection = this.globalCh.reqres.request('cache-get', 'collections/racer');
+
       cacheman.get( new RacerCollection() ).done(function(racerCollection){
         var raceSubmitView = new RaceSubmitView({collection: racerCollection});
         regionManager.get('addRegion').show(raceSubmitView);

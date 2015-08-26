@@ -1,7 +1,6 @@
 define([
     'jquery',
     'marionette',
-    'cacheman',
     'regionManager',
     'layouts/results',
     'models/race',
@@ -11,7 +10,7 @@ define([
     'views/raceSubmit',
     'views/races',
 
-], function($, Marionette, cacheman, regionManager, ResultsLayout, RaceModel, RacerCollection, RaceCollection, ImportView, RaceSubmitView, RacesView) {
+], function($, Marionette, regionManager, ResultsLayout, RaceModel, RacerCollection, RaceCollection, ImportView, RaceSubmitView, RacesView) {
 
   var BaseController = Marionette.Object.extend({
     initialize: function(){
@@ -20,6 +19,8 @@ define([
 
     index: function() {
       var _this =  this;
+      // var racerCollection = this.globalCh.reqres.request('cache-get', 'collections/racer');
+
       cacheman.get( new RacerCollection() ).done(function(racerCollection){
         var raceSubmitView = new RaceSubmitView({collection: racerCollection});
         regionManager.get('addRegion').show(raceSubmitView);
