@@ -1,13 +1,14 @@
 define([
     'backbone',
     'marionette',
+    'cacheman',
     'approuter',
-    'collections/racer'
-], function(Backbone, Marionette, AppRouter, RacerCollection) {
+], function(Backbone, Marionette, Cacheman, AppRouter) {
 
   var App = Marionette.Application.extend({
     onStart: function(){
       new AppRouter();
+      new Cacheman();
       Backbone.history.start();
     },
   });

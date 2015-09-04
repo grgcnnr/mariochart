@@ -19,14 +19,14 @@ define([
 
     index: function() {
       var _this =  this;
-      // var racerCollection = this.globalCh.reqres.request('cache-get', 'collections/racer');
 
-      cacheman.get( new RacerCollection() ).done(function(racerCollection){
+      this.globalCh.reqres.request('cache-get', 'collections/racer').done(function(racerCollection){
         var raceSubmitView = new RaceSubmitView({collection: racerCollection});
         regionManager.get('addRegion').show(raceSubmitView);
       });
 
-      cacheman.get( new RaceCollection()).done(function(raceCollection){
+
+      this.globalCh.reqres.request('cache-get', 'collections/race').done(function(raceCollection){
         var resultsLayout = new ResultsLayout(),
           racesView = new RacesView({collection: raceCollection});
 
